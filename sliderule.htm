@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Логарифмическая линейка</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Центрируем по вертикали */
+            padding: 20px;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Ограничиваем максимальную ширину */
+            margin: 0 auto;
+            text-align: center;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1; /* Позволяем контейнеру занимать доступное пространство */
+        }
+        
+        .header {
+            margin-bottom: 30px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            margin-bottom: 30px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .slide-rule {
+            background: linear-gradient(to bottom, #f8f3e6, #f0e9d5);
+            border-radius: 12px;
+            padding: 25px 20px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 2px solid #d4c9a9;
+            position: relative;
+            margin-bottom: 30px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .slide-rule-body {
+            position: relative;
+            height: 420px;
+            width: 100%;
+            border: 1px solid #b8a993;
+            border-radius: 8px;
+            background-color: #fefcf5;
+            overflow: visible;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Неподвижные шкалы A и C */
+        .scale-container {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background-color: #f5f0e1;
+            border: 1px solid #c9b8a4;
+            overflow: visible;
+        }
+        
+        .scale-a {
+            top: 0;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .scale-c {
+            bottom: 0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* Подвижная шкала B */
+        .slide {
+            position: absolute;
+            top: 140px;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            background-color: #e8dfcb;
+            border: 1px solid #a8957a;
+            border-radius: 4px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            z-index: 5;
+            overflow: visible;
+        }
+        
+        .slide-inner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Курсор (визир) */
+        .cursor {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, #e74c3c, transparent);
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .cursor-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-left: 2px solid #e74c3c;
+            box-shadow: 0 0 3px rgba(231, 76, 60, 0.5);
+        }
+        
+        .cursor-hairline {
+            position: absolute;
+            top: 0;
+            left: -5px;
+            width: 12px;
+            height: 100%;
+            border-left: 1px solid rgba(231, 76, 60, 0.3);
+            border-right: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .cursor-label {
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e74c3c;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 11;
+        }
+        
+        /* Шкалы */
+        .scale {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .scale-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #5a4a42;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 3px 8px;
+            border-radius: 3px;
+            border: 1px solid #d4c9a9;
+            z-index: 2;
+        }
+        
+        .scale-label-right {
+            left: auto;
+            right: 10px;
+        }
+        
+        /* Разметка шкал */
+        .tick {
+            position: absolute;
+            bottom: 0;
+            background-color: #333;
+        }
+        
+        .tick-major {
+            width: 2px;
+            height: 25px;
+            background-color: #000;
+        }
+        
+        .tick-medium {
+            width: 1px;
+            height: 18px;
+            background-color: #444;
+        }
+        
+        .tick-minor {
+            width: 1px;
+            height: 12px;
+            background-color: #666;
+        }
+        
+        .tick-number {
+            position: absolute;
+            bottom: -30px;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        
+        /* Деления с подписями */
+        .scale-marking {
+            position: absolute;
+            bottom: 0;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+        
+        .scale-number {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+        
+        /* Панель управления */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            min-width: 200px;
+            flex: 1;
+        }
+        
+        .control-label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-icon {
+            font-size: 1.2rem;
+        }
+        
+        .slider-container {
+            width: 100%;
+            position: relative;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e74c3c;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .slider-value {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .current-values {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .value-display {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            min-width: 180px;
+            flex: 1;
+        }
+        
+        .value-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .instructions {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            max-width: 600px;
+            line-height: 1.5;
+            text-align: center;
+        }
+        
+        /* Эффект выхода шкалы B за пределы */
+        .slide-rule-body::before,
+        .slide-rule-body::after {
+            content: '';
+            position: absolute;
+            top: 140px;
+            width: 20px;
+            height: 140px;
+            background: linear-gradient(to right, #f0e9d5, transparent);
+            z-index: 6;
+        }
+        
+        .slide-rule-body::before {
+            left: -20px;
+            transform: rotate(180deg);
+        }
+        
+        .slide-rule-body::after {
+            right: -20px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .slide-rule {
+                padding: 15px;
+            }
+            
+            .slide-rule-body {
+                height: 380px;
+            }
+            
+            .scale-container, .slide {
+                height: 120px;
+            }
+            
+            .slide {
+                top: 120px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .current-values {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .slide-rule-body::before,
+            .slide-rule-body::after {
+                top: 120px;
+                height: 120px;
+            }
+            
+            .value-display {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body style="user-select: auto;">
+    <div class="container">
+        <div class="header">
+            
+            
+        </div>
+        
+        <div class="main-content">
+            <div class="slide-rule">
+                <div class="slide-rule-body" id="slide-rule-body">
+                    <!-- Шкалы будут созданы динамически через JavaScript -->
+                    <div class="scale-container scale-a">
+                        <div class="scale" id="a-scale"><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="tick tick-major" style="left: 0px; height: 25px;"></div><div class="tick tick-major" style="left: 341.97px; height: 25px;"></div><div class="tick tick-major" style="left: 542.01px; height: 25px;"></div><div class="tick tick-major" style="left: 683.94px; height: 25px;"></div><div class="tick tick-major" style="left: 794.03px; height: 25px;"></div><div class="tick tick-major" style="left: 883.98px; height: 25px;"></div><div class="tick tick-major" style="left: 960.031px; height: 25px;"></div><div class="tick tick-major" style="left: 1025.91px; height: 25px;"></div><div class="tick tick-major" style="left: 1084.02px; height: 25px;"></div><div class="tick tick-major" style="left: 1136px; height: 25px;"></div></div><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="scale-marking" style="left: 0px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">1</div></div><div class="scale-marking" style="left: 341.97px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">2</div></div><div class="scale-marking" style="left: 542.01px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">3</div></div><div class="scale-marking" style="left: 683.94px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">4</div></div><div class="scale-marking" style="left: 794.03px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">5</div></div><div class="scale-marking" style="left: 883.98px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">6</div></div><div class="scale-marking" style="left: 960.031px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">7</div></div><div class="scale-marking" style="left: 1025.91px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">8</div></div><div class="scale-marking" style="left: 1084.02px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">9</div></div><div class="scale-marking" style="left: 1136px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">10</div></div></div></div>
+                        <div class="scale-label">A</div>
+                    </div>
+                    
+                    <div class="slide" id="slide" style="left: 0px; cursor: grab;">
+                        <div class="slide-inner">
+                            <div class="scale" id="b-scale"><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="tick tick-major" style="left: 0px; height: 25px;"></div><div class="tick tick-major" style="left: 341.97px; height: 25px;"></div><div class="tick tick-major" style="left: 542.01px; height: 25px;"></div><div class="tick tick-major" style="left: 683.94px; height: 25px;"></div><div class="tick tick-major" style="left: 794.03px; height: 25px;"></div><div class="tick tick-major" style="left: 883.98px; height: 25px;"></div><div class="tick tick-major" style="left: 960.031px; height: 25px;"></div><div class="tick tick-major" style="left: 1025.91px; height: 25px;"></div><div class="tick tick-major" style="left: 1084.02px; height: 25px;"></div><div class="tick tick-major" style="left: 1136px; height: 25px;"></div></div><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="scale-marking" style="left: 0px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">1</div></div><div class="scale-marking" style="left: 341.97px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">2</div></div><div class="scale-marking" style="left: 542.01px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">3</div></div><div class="scale-marking" style="left: 683.94px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">4</div></div><div class="scale-marking" style="left: 794.03px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">5</div></div><div class="scale-marking" style="left: 883.98px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">6</div></div><div class="scale-marking" style="left: 960.031px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">7</div></div><div class="scale-marking" style="left: 1025.91px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">8</div></div><div class="scale-marking" style="left: 1084.02px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">9</div></div><div class="scale-marking" style="left: 1136px;"><div class="scale-number" style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);">10</div></div></div></div>
+                            <div class="scale-label">B</div>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="scale-container scale-c">
+                        <div class="scale" id="c-scale"><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="tick tick-major" style="left: 0px; height: 25px;"></div><div class="tick tick-major" style="left: 341.97px; height: 25px;"></div><div class="tick tick-major" style="left: 542.01px; height: 25px;"></div><div class="tick tick-major" style="left: 683.94px; height: 25px;"></div><div class="tick tick-major" style="left: 794.03px; height: 25px;"></div><div class="tick tick-major" style="left: 883.98px; height: 25px;"></div><div class="tick tick-major" style="left: 960.031px; height: 25px;"></div><div class="tick tick-major" style="left: 1025.91px; height: 25px;"></div><div class="tick tick-major" style="left: 1084.02px; height: 25px;"></div><div class="tick tick-major" style="left: 1136px; height: 25px;"></div></div><div style="position: absolute; width: 100%; height: 100%; top: 0px; left: 0px;"><div class="scale-marking" style="left: 0px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">1</div></div><div class="scale-marking" style="left: 341.97px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">2</div></div><div class="scale-marking" style="left: 542.01px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">3</div></div><div class="scale-marking" style="left: 683.94px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">4</div></div><div class="scale-marking" style="left: 794.03px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">5</div></div><div class="scale-marking" style="left: 883.98px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">6</div></div><div class="scale-marking" style="left: 960.031px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">7</div></div><div class="scale-marking" style="left: 1025.91px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">8</div></div><div class="scale-marking" style="left: 1084.02px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">9</div></div><div class="scale-marking" style="left: 1136px; bottom: 0px; top: auto;"><div class="scale-number" style="position: absolute; bottom: 35px; top: auto; left: 50%; transform: translateX(-50%);">10</div></div></div></div>
+                        <div class="scale-label">C</div>
+                    </div>
+                    
+                    <div class="cursor" id="cursor" style="left: 542.01px;">
+                        <div class="cursor-line"></div>
+                        <div class="cursor-hairline"></div>
+                        <div class="cursor-label" id="cursor-label">3.00</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-label">
+                        ↔️
+                        Положение шкалы B
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="slide-position" min="-200" max="1200" value="0" step="1">
+                    </div>
+                    <div class="slider-value" id="slide-value">0</div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        ❗
+                        Положение курсора
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="cursor-position" min="0" max="1000" value="477" step="1">
+                    </div>
+                    <div class="slider-value" id="cursor-value">48%</div>
+                </div>
+            </div>
+            
+            <div class="current-values">
+                <div class="value-display">
+                    <div class="value-label">Значение на шкале A</div>
+                    <div class="value" id="a-scale-value">3.00</div>
+                </div>
+                
+                <div class="value-display">
+                    <div class="value-label">Значение на шкале B</div>
+                    <div class="value" id="b-scale-value">3.00</div>
+                </div>
+                
+                <div class="value-display">
+                    <div class="value-label">Значение на шкале C</div>
+                    <div class="value" id="c-scale-value">3.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            
+        </div>
+    </div>
+
+    <script>
+        // DOM элементы
+        const slide = document.getElementById('slide');
+        const cursor = document.getElementById('cursor');
+        const cursorLabel = document.getElementById('cursor-label');
+        const slidePositionSlider = document.getElementById('slide-position');
+        const cursorPositionSlider = document.getElementById('cursor-position');
+        const slideValueDisplay = document.getElementById('slide-value');
+        const cursorValueDisplay = document.getElementById('cursor-value');
+        const aScaleValueDisplay = document.getElementById('a-scale-value');
+        const bScaleValueDisplay = document.getElementById('b-scale-value');
+        const cScaleValueDisplay = document.getElementById('c-scale-value');
+        
+        // Элементы шкал
+        const aScale = document.getElementById('a-scale');
+        const bScale = document.getElementById('b-scale');
+        const cScale = document.getElementById('c-scale');
+        const slideRuleBody = document.getElementById('slide-rule-body');
+        
+        // Параметры
+        let scaleLength = 1000; // виртуальная длина шкалы
+        let bodyWidth = slideRuleBody.offsetWidth; // реальная ширина в пикселях
+        let pixelsPerUnit = bodyWidth / scaleLength; // коэффициент преобразования
+        
+        // Текущие значения
+        let slidePosition = 0;
+        let cursorPosition = valueToPosition(3);
+        
+        // Инициализация всех шкал
+        function initScales() {
+            createLogScale(aScale, 'A');
+            createLogScale(bScale, 'B');
+            createLogScale(cScale, 'C');
+            updateDisplay();
+        }
+        
+        // Создание логарифмической шкалы, которая занимает всю ширину
+        function createLogScale(scaleElement, scaleName) {
+            scaleElement.innerHTML = '';
+            
+            // Очищаем статические деления
+            const ticksContainer = document.createElement('div');
+            ticksContainer.style.position = 'absolute';
+            ticksContainer.style.width = '100%';
+            ticksContainer.style.height = '100%';
+            ticksContainer.style.top = '0';
+            ticksContainer.style.left = '0';
+            
+            const numbersContainer = document.createElement('div');
+            numbersContainer.style.position = 'absolute';
+            numbersContainer.style.width = '100%';
+            numbersContainer.style.height = '100%';
+            numbersContainer.style.top = '0';
+            numbersContainer.style.left = '0';
+            
+            // Основные деления от 1 до 10
+            const mainValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            
+            // Создаем только основные деления (без промежуточных)
+            mainValues.forEach(value => {
+                const position = valueToPosition(value);
+                const pixelPosition = position * pixelsPerUnit;
+                
+                // Создаем основное деление
+                const tick = document.createElement('div');
+                tick.classList.add('tick', 'tick-major');
+                tick.style.left = `${pixelPosition}px`;
+                tick.style.height = '25px';
+                ticksContainer.appendChild(tick);
+            });
+            
+            // Добавляем подписи основных значений
+            mainValues.forEach(value => {
+                const position = valueToPosition(value);
+                const pixelPosition = position * pixelsPerUnit;
+                
+                const marking = document.createElement('div');
+                marking.classList.add('scale-marking');
+                marking.style.left = `${pixelPosition}px`;
+                
+                const number = document.createElement('div');
+                number.classList.add('scale-number');
+                number.textContent = value;
+                
+                // Позиционирование для разных шкал
+                if (scaleName === 'A' || scaleName === 'C') {
+                    marking.style.bottom = '0';
+                    marking.style.top = 'auto';
+                    number.style.position = 'absolute';
+                    number.style.bottom = '35px';
+                    number.style.top = 'auto';
+                    number.style.left = '50%';
+                    number.style.transform = 'translateX(-50%)';
+                } else {
+                    number.style.position = 'absolute';
+                    number.style.bottom = '-30px';
+                    number.style.left = '50%';
+                    number.style.transform = 'translateX(-50%)';
+                }
+                
+                marking.appendChild(number);
+                numbersContainer.appendChild(marking);
+            });
+            
+            scaleElement.appendChild(ticksContainer);
+            scaleElement.appendChild(numbersContainer);
+        }
+        
+        // Преобразование значения в позицию (0-1000)
+        function valueToPosition(value) {
+            return Math.log10(value) * scaleLength;
+        }
+        
+        // Преобразование позиции (0-1000) в значение
+        function positionToValue(position) {
+            return Math.pow(10, position / scaleLength);
+        }
+        
+        // Преобразование виртуальной позиции в реальные пиксели
+        function positionToPixels(position) {
+            return position * pixelsPerUnit;
+        }
+        
+        // Обновление отображения
+        function updateDisplay() {
+            // Обновляем позицию шкалы B в пикселях
+            const slideLeftPx = positionToPixels(slidePosition);
+            slide.style.left = `${slideLeftPx}px`;
+            
+            // Обновляем позицию курсора в пикселях
+            const cursorLeftPx = positionToPixels(cursorPosition);
+            cursor.style.left = `${cursorLeftPx}px`;
+            
+            // Вычисляем значения на шкалах
+            const aValue = positionToValue(cursorPosition);
+            const bRelativePos = cursorPosition - slidePosition;
+            const bValue = positionToValue(bRelativePos);
+            const cValue = positionToValue(cursorPosition);
+            
+            // Обновляем отображение
+            cursorLabel.textContent = cValue.toFixed(2);
+            slideValueDisplay.textContent = slidePosition;
+            cursorValueDisplay.textContent = `${Math.round(cursorPosition/10)}%`;
+            aScaleValueDisplay.textContent = aValue.toFixed(2);
+            bScaleValueDisplay.textContent = bValue.toFixed(2);
+            cScaleValueDisplay.textContent = cValue.toFixed(2);
+            
+            // Обновляем значения ползунков
+            slidePositionSlider.value = slidePosition;
+            cursorPositionSlider.value = cursorPosition;
+        }
+        
+        // Обработчики событий
+        slidePositionSlider.addEventListener('input', function() {
+            slidePosition = parseInt(this.value);
+            updateDisplay();
+        });
+        
+        cursorPositionSlider.addEventListener('input', function() {
+            cursorPosition = parseInt(this.value);
+            updateDisplay();
+        });
+        
+        // Функция для перерисовки шкал при изменении размера
+        function resizeScales() {
+            bodyWidth = slideRuleBody.offsetWidth;
+            pixelsPerUnit = bodyWidth / scaleLength;
+            
+            // Перерисовываем все шкалы
+            createLogScale(aScale, 'A');
+            createLogScale(bScale, 'B');
+            createLogScale(cScale, 'C');
+            updateDisplay();
+        }
+        
+        // Инициализация
+        initScales();
+        
+        // Обработка изменения размера окна
+        window.addEventListener('resize', function() {
+            resizeScales();
+        });
+        
+        // Добавляем возможность перемещения шкалы B мышкой
+        let isDragging = false;
+        let dragStartX = 0;
+        let slideStartPosition = 0;
+        
+        slide.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            dragStartX = e.clientX;
+            slideStartPosition = slidePosition;
+            slide.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - dragStartX;
+            // Преобразуем смещение мыши в виртуальные единицы
+            const deltaUnits = deltaX / pixelsPerUnit;
+            const newPosition = slideStartPosition + deltaUnits;
+            
+            // Ограничиваем значение
+            slidePosition = Math.max(-200, Math.min(1200, newPosition));
+            updateDisplay();
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                slide.style.cursor = 'grab';
+                document.body.style.userSelect = 'auto';
+            }
+        });
+        
+        // Для сенсорных устройств
+        slide.addEventListener('touchstart', function(e) {
+            isDragging = true;
+            dragStartX = e.touches[0].clientX;
+            slideStartPosition = slidePosition;
+            e.preventDefault();
+        });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.touches[0].clientX - dragStartX;
+            const deltaUnits = deltaX / pixelsPerUnit;
+            const newPosition = slideStartPosition + deltaUnits;
+            
+            slidePosition = Math.max(-200, Math.min(1200, newPosition));
+            updateDisplay();
+            e.preventDefault();
+        });
+        
+        document.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+        
+        // Изменяем курсор при наведении на шкалу B
+        slide.style.cursor = 'grab';
+        
+        // Запускаем начальную перерисовку
+        resizeScales();
+    </script>
+
+</body></html>
